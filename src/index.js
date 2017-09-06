@@ -27,7 +27,18 @@ function map(array, fn) {
  Напишите аналог встроенного метода reduce для работы с массивами
  */
 function reduce(array, fn, initial) {
+    var i = 0;
 
+    if (typeof initial === 'undefined') {
+        initial = array[0];
+        i = 1
+    }
+
+    for (i; i < array.length; i++) {
+        initial = fn(initial, array[i], i, array);
+    }
+
+    return initial;
 }
 
 /*
@@ -113,6 +124,18 @@ function slice(array, from = 0, to = array.length) {
  Proxy должен перехватывать все попытки записи значений свойств и возводить это значение в квадрат
  */
 function createProxy(obj) {
+    obj = new Proxy(obj, {
+        set(target, prop, value) {
+            if (typeof value !== 'number') {
+                throw new Error('value is not a number');
+            }
+            target[prop] = value * value;
+
+            return true;
+        }
+    });
+
+    return obj;
 }
 
 export {
