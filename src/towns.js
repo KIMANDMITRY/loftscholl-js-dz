@@ -36,6 +36,34 @@ let homeworkContainer = document.querySelector('#homework-container');
  * @return {Promise<Array<{name: string}>>}
  */
 function loadTowns() {
+    var url = 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json',
+        towns = null;
+
+    return new Promise(function(resolve, reject) {
+        let xhr = new XMLHttpRequest();
+
+        xhr.responseType = 'json';
+        xhr.open('GET', url, true);
+        xhr.onload = function() {
+            if (xhr.status < 400) {
+                towns = xhr.response;
+                towns.sort((a, b) => {
+                    if (a.name > b.name) {
+                        return 1;
+                    }
+                    if (a.name < b.name) {
+                        return -1;
+                    }
+
+                    return 0;
+                });
+                resolve(towns);
+            } else {
+                reject();
+            }
+        };
+        xhr.send();
+    });
 }
 
 /**
@@ -52,7 +80,52 @@ function loadTowns() {
  * @return {boolean}
  */
 function isMatching(full, chunk) {
+    return full.toLowerCase().indexOf(chunk.toLowerCase()) !== -1;
 }
+
+var loadingBlock = homeworkContainer.querySelector('#loading-block');
+var filterBlock = homeworkContainer.querySelector('#filter-block');
+var filterInput = homeworkContainer.querySelector('#filter-input');
+var filterResult = homeworkContainer.querySelector('#filter-result');
+// let townsPromise = loadTowns();
+
+loadTowns().then(
+    cities => {
+    loadingBlock.textContent = 'Города загружены';
+filterBlock.style.display = 'block';
+
+filterInput.addEventListener('keyup', function () {
+    var chunk = filterInput.value;
+
+    filterResult.innerHTML = '';
+
+    cities.forEach((item) => {
+        if (isMatching(item.name, chunk)) {
+        var city = document.createElement('div');
+
+        city.innerText = item.name;
+        filterResult.appendChild(city);
+    }
+});
+
+    if (chunk === '') {
+        filterResult.innerHTML = '';
+    }
+});
+},
+error => {
+    var button = document.createElement('button');
+
+    button.setAttribute('type', 'button');
+    button.innerText = 'Повторить';
+    homeworkContainer.appendChild(button);
+    loadingBlock.textContent = error;
+    loadingBlock.style.color = 'red';
+
+    button.addEventListener('click', () => loadTowns())
+}
+);
+
 
 let loadingBlock = homeworkContainer.querySelector('#loading-block');
 let filterBlock = homeworkContainer.querySelector('#filter-block');
